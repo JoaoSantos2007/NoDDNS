@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Endpoint para receber a requisição e atualizar o /etc/hosts
 app.post('/syncIP', (req, res) => {
   try {
-    if(req.headers['api_key'] !== apiKey) return res.status(401).send('Chave de API inválida');
+    if(req.headers['authorization'] !== `Bearer ${apiKey}`) return res.status(401).send('Chave de API inválida');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     if (!ip) return res.status(400).send('IP não fornecido');
 
