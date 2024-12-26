@@ -10,6 +10,8 @@ const hostsFile = '/etc/hosts';
 const port = 8196;
 const apiKey = '123456';
 
+let oldIp = '';
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Endpoint para receber a requisição e atualizar o /etc/hosts
@@ -18,6 +20,7 @@ app.post('/syncIP', (req, res) => {
     if(req.headers['authorization'] !== `Bearer ${apiKey}`) return res.status(401).send('Chave de API inválida');
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     if (!ip) return res.status(400).send('IP não fornecido');
+    if (oldIp === ip) return res.status(200).send('IP já atualizado!');
 
     const data = readFileSync(hostsFile, 'utf8') // Leia o conteúdo atual do /etc/hosts
 
@@ -27,7 +30,8 @@ app.post('/syncIP', (req, res) => {
 
     const updatedData = data.replace(regex, `${ip} home`); // Substitua o IP antigo pelo novo
     writeFileSync(hostsFile, updatedData, 'utf8'); // Escrever no arquivo /etc/hosts
-    return res.status(201).send(`IP atualizado para: ${ip}`);
+    oldIp = ip;
+    return res.status(201).send(`IP atualizado para: ${ip}!`);
   } catch (err) {
     return res.status(500).send('Erro ao atualizar IP');
   }
